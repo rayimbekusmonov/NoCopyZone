@@ -1,0 +1,84 @@
+spring:
+  application:
+    name: NoCopyZone
+
+  # ===== DATABASE =====
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/nocopyzone}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  # ===== JPA =====
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # ===== FLYWAY =====
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  # ===== REDIS =====
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+      password: ${SPRING_DATA_REDIS_PASSWORD:}
+      timeout: 2000ms
+
+  # ===== RABBITMQ =====
+  rabbitmq:
+    host: ${SPRING_RABBITMQ_HOST:localhost}
+    port: ${SPRING_RABBITMQ_PORT:5672}
+    username: ${SPRING_RABBITMQ_USERNAME:guest}
+    password: ${SPRING_RABBITMQ_PASSWORD:guest}
+    virtual-host: /
+
+  # ===== MAIL =====
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# ===== SERVER =====
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api
+
+# ===== JWT =====
+app:
+  jwt:
+    secret: ${APP_JWT_SECRET:nocopyzone-super-secret-key-minimum-256-bits-long-for-hs256}
+    expiration: 86400000
+    refresh-expiration: 604800000
+
+  proctoring:
+    log-flush-interval: 5000
+    max-tab-switches: 3
+
+  upload:
+    max-file-size: 50MB
+    allowed-types: pdf,docx,pptx,zip,png,jpg
+
+# ===== LOGGING =====
+logging:
+  level:
+    com.rayimbek.nocopyzone: DEBUG
+    org.springframework.security: INFO
