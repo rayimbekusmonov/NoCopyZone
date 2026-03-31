@@ -23,7 +23,7 @@ public class TaskService {
     @Transactional
     public TaskDto.Response create(TaskDto.CreateRequest request, User teacher) {
         Course course = courseRepository.findById(request.getCourseId())
-                .orElseThrow(() -> new RuntimeException("Course not found: " + request.getCourseId()));
+                .orElseThrow(() -> new RuntimeException("Kurs topilmadi: " + request.getCourseId()));
 
         Task task = new Task();
         task.setTitle(request.getTitle());
@@ -33,6 +33,7 @@ public class TaskService {
         task.setTeacher(teacher);
         task.setDeadline(request.getDeadline());
         task.setMaxScore(request.getMaxScore() != null ? request.getMaxScore() : 100);
+        task.setDurationMinutes(request.getDurationMinutes());
 
         return toResponse(taskRepository.save(task));
     }
@@ -49,7 +50,7 @@ public class TaskService {
 
     public TaskDto.Response getById(Long id) {
         return toResponse(taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found: " + id)));
+                .orElseThrow(() -> new RuntimeException("Task topilmadi: " + id)));
     }
 
     private TaskDto.Response toResponse(Task t) {
@@ -57,6 +58,8 @@ public class TaskService {
                 t.getId(), t.getTitle(), t.getDescription(), t.getType(),
                 t.getCourse().getId(), t.getCourse().getName(),
                 t.getTeacher().getFullName(),
-                t.getDeadline(), t.getMaxScore(), t.getCreatedAt());
+                t.getDeadline(), t.getMaxScore(),
+                t.getDurationMinutes(),
+                t.getCreatedAt());
     }
 }
