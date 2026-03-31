@@ -1,0 +1,60 @@
+package com.rayimbek.nocopyzone.controller;
+
+import com.rayimbek.nocopyzone.entity.User;
+import com.rayimbek.nocopyzone.repository.UserRepository;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/users")
+@RequiredArgsConstructor
+@CrossOrigin(origins = "*")
+public class UserController {
+
+    private final UserRepository userRepository;
+
+    @Data
+    @AllArgsConstructor
+    public static class UserResponse {
+        private Long id;
+        private String fullName;
+        private String email;
+        private String role;
+    }
+
+    // Barcha foydalanuvchilar (admin uchun)
+    @GetMapping
+    public ResponseEntity<List<UserResponse>> getAll() {
+        return ResponseEntity.ok(
+                userRepository.findAll().stream()
+                        .map(u -> new UserResponse(u.getId(), u.getFullName(), u.getEmail(), u.getRole().getName()))
+                        .collect(Collectors.toList())
+        );
+    }
+
+    // Faqat studentlar
+    @GetMapping("/students")
+    public ResponseEntity<List<UserResponse>> getStudents() {
+        return ResponseEntity.ok(
+                userRepository.findAll().stream()
+                        .filter(u -> "ROLE_STUDENT".equals(u.getRole().getName()))
+                        .map(u -> new UserResponse(u.getId(), u.getFullName(), u.getEmail(), u.getRole().getName()))
+                        .collect(Collectors.toList())
+        );
+    }
+
+    // O'zim haqimda
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> me(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(
+                new UserResponse(user.getId(), user.getFullName(), user.getEmail(), user.getRole().getName())
+        );
+    }
+}

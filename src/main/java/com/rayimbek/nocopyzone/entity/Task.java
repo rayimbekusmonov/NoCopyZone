@@ -22,6 +22,7 @@ public class Task {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    // LAB, EXAM, CODE, QUIZ, ESSAY, FILE
     @Column(nullable = false, length = 50)
     private String type;
 
@@ -34,6 +35,14 @@ public class Task {
     private User teacher;
 
     private LocalDateTime deadline;
+
+    // QUIZ uchun vaqt chegarasi (daqiqada)
+    @Column(name = "duration_minutes")
+    private Integer durationMinutes;
+
+    // Ustoz qo'ygan fayl (PDF topshiriq)
+    @Column(name = "task_file_url", length = 500)
+    private String taskFileUrl;
 
     @Column(name = "max_score", nullable = false)
     private Integer maxScore = 100;
