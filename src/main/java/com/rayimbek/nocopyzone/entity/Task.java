@@ -23,13 +23,13 @@ public class Task {
     private String description;
 
     @Column(nullable = false, length = 50)
-    private String type; // LAB, PRESENTATION, EXAM, CODE
+    private String type;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "teacher_id", nullable = false)
     private User teacher;
 

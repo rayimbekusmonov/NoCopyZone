@@ -16,19 +16,19 @@ public class ProctoringLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "submission_id", nullable = false)
     private Submission submission;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "student_id", nullable = false)
     private User student;
 
     @Column(name = "event_type", nullable = false, length = 100)
-    private String eventType; // TAB_SWITCH, COPY_PASTE, FOCUS_LOST, SUSPICIOUS_TYPING
+    private String eventType;
 
     @Column(nullable = false, length = 20)
-    private String severity = "LOW"; // LOW, MEDIUM, HIGH
+    private String severity = "LOW";
 
     @Column(columnDefinition = "TEXT")
     private String details;
