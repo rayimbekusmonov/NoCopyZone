@@ -25,7 +25,7 @@ public class QuizAnswer {
     private QuizQuestion question;
 
     @Column(length = 1)
-    private String selected; // A, B, C, D
+    private String selected;
 
     @Column(name = "is_correct")
     private Boolean isCorrect = false;

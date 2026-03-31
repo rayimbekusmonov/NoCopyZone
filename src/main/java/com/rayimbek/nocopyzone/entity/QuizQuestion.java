@@ -34,7 +34,7 @@ public class QuizQuestion {
     private String optionD;
 
     @Column(name = "correct_answer", nullable = false, length = 1)
-    private String correctAnswer; // A, B, C, D
+    private String correctAnswer;
 
     @Column(name = "order_num")
     private Integer orderNum = 0;
