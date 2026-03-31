@@ -1,6 +1,5 @@
 package com.rayimbek.nocopyzone.controller;
 
-import com.rayimbek.nocopyzone.dto.CourseDto;
 import com.rayimbek.nocopyzone.entity.User;
 import com.rayimbek.nocopyzone.service.CourseService;
 import jakarta.validation.Valid;
@@ -20,25 +19,25 @@ public class CourseController {
     private final CourseService courseService;
 
     @PostMapping
-    public ResponseEntity<CourseDto.Response> create(
-            @Valid @RequestBody CourseDto.CreateRequest request,
+    public ResponseEntity<CourseService.Response> create(
+            @RequestBody CourseService.CreateRequest request,
             @AuthenticationPrincipal User teacher) {
         return ResponseEntity.ok(courseService.create(request, teacher));
     }
 
     @GetMapping
-    public ResponseEntity<List<CourseDto.Response>> getAll() {
+    public ResponseEntity<List<CourseService.Response>> getAll() {
         return ResponseEntity.ok(courseService.getAll());
     }
 
     @GetMapping("/my")
-    public ResponseEntity<List<CourseDto.Response>> getMyCourses(
+    public ResponseEntity<List<CourseService.Response>> getMyCourses(
             @AuthenticationPrincipal User teacher) {
-        return ResponseEntity.ok(courseService.getMyCoures(teacher));
+        return ResponseEntity.ok(courseService.getMyCourses(teacher));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CourseDto.Response> getById(@PathVariable Long id) {
+    public ResponseEntity<CourseService.Response> getById(@PathVariable Long id) {
         return ResponseEntity.ok(courseService.getById(id));
     }
 }
