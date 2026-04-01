@@ -1,20 +1,18 @@
 package com.rayimbek.nocopyzone.config;
 
-import com.rayimbek.nocopyzone.repository.UserRepository;
 import com.rayimbek.nocopyzone.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -30,7 +28,88 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final UserRepository userRepository;
+    private final UserDetailsService userDetailsService;
+    private final JwtAuthFilter jwtAuthFilter;
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+
+                        // ===== PUBLIC =====
+                        .requestMatchers("/auth/**").permitAll()
+
+                        // ===== ADMIN ONLY =====
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/groups").hasAnyRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/groups/*/students/*").hasAnyRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/groups/*/students/*").hasAnyRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/groups/*/courses/*").hasAnyRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/groups/*/courses/*").hasAnyRole("ADMIN")
+
+                        // ===== TEACHER + ADMIN =====
+                        .requestMatchers(HttpMethod.POST, "/courses").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/courses/**").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/courses/**").hasAnyRole("TEACHER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/tasks").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/tasks/**").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/tasks/**").hasAnyRole("TEACHER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/lectures/**").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/lectures/**").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/lectures/**").hasAnyRole("TEACHER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/quiz/task/*/questions").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/quiz/questions/**").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/quiz/task/*/questions/admin").hasAnyRole("TEACHER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/submissions/*/grade").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/submissions/task/**").hasAnyRole("TEACHER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.POST, "/enrollments/course/*/student/*").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/enrollments/course/*/student/*").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/enrollments/course/**").hasAnyRole("TEACHER", "ADMIN")
+
+                        .requestMatchers(HttpMethod.GET, "/proctor/task/**").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/users/students").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/users/teachers").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/users").hasAnyRole("TEACHER", "ADMIN")
+
+                        // ===== STUDENT ONLY =====
+                        .requestMatchers(HttpMethod.POST, "/submissions/start/**").hasRole("STUDENT")
+                        .requestMatchers(HttpMethod.POST, "/submissions/*/submit").hasRole("STUDENT")
+                        .requestMatchers(HttpMethod.GET, "/submissions/my").hasRole("STUDENT")
+
+                        .requestMatchers(HttpMethod.GET, "/quiz/task/*/questions").hasRole("STUDENT")
+                        .requestMatchers(HttpMethod.POST, "/quiz/submission/*/answer").hasRole("STUDENT")
+                        .requestMatchers(HttpMethod.POST, "/quiz/submission/*/finish").hasRole("STUDENT")
+
+                        .requestMatchers(HttpMethod.GET, "/groups/my-courses").hasRole("STUDENT")
+
+                        .requestMatchers(HttpMethod.POST, "/proctor/event").hasRole("STUDENT")
+                        .requestMatchers(HttpMethod.GET, "/proctor/submission/**").hasAnyRole("STUDENT", "TEACHER", "ADMIN")
+
+                        // ===== ALL AUTHENTICATED =====
+                        .requestMatchers(HttpMethod.GET, "/courses/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/tasks/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/lectures/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/groups/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/enrollments/my").authenticated()
+                        .requestMatchers("/users/me").authenticated()
+                        .requestMatchers("/users/change-password").authenticated()
+                        .requestMatchers("/files/**").authenticated()
+
+                        .anyRequest().authenticated()
+                )
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -38,7 +117,7 @@ public class SecurityConfig {
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "http://localhost:3001",
-                "http://localhost:3002"
+                "https://nocopyzone.vercel.app"  // production URL qo'shing
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
@@ -51,33 +130,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
-        http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/files/**").permitAll()
-                        .anyRequest().authenticated()
-                )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return username -> userRepository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
-    }
-
-    @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(userDetailsService());
+        provider.setUserDetailsService(userDetailsService);
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }

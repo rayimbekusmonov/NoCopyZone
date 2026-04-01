@@ -17,23 +17,6 @@ public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
 
-    // Student o'zi kursga yoziladi
-    @PostMapping("/enroll/{courseId}")
-    public ResponseEntity<EnrollmentService.EnrollmentResponse> enroll(
-            @PathVariable Long courseId,
-            @AuthenticationPrincipal User student) {
-        return ResponseEntity.ok(enrollmentService.enroll(courseId, student));
-    }
-
-    // Student kursdan chiqadi
-    @DeleteMapping("/unenroll/{courseId}")
-    public ResponseEntity<Void> unenroll(
-            @PathVariable Long courseId,
-            @AuthenticationPrincipal User student) {
-        enrollmentService.unenroll(courseId, student);
-        return ResponseEntity.ok().build();
-    }
-
     // Teacher o'z kursiga student qo'shadi
     @PostMapping("/course/{courseId}/student/{studentId}")
     public ResponseEntity<EnrollmentService.EnrollmentResponse> enrollStudent(
