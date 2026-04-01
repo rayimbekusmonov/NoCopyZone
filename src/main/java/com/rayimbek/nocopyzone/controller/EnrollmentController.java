@@ -17,7 +17,7 @@ public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
 
-    // Teacher o'z kursiga student qo'shadi
+    // Teacher — alohida talaba qo'shish
     @PostMapping("/course/{courseId}/student/{studentId}")
     public ResponseEntity<EnrollmentService.EnrollmentResponse> enrollStudent(
             @PathVariable Long courseId,
@@ -25,7 +25,15 @@ public class EnrollmentController {
         return ResponseEntity.ok(enrollmentService.enrollById(courseId, studentId));
     }
 
-    // Teacher kursidan student chiqaradi
+    // Teacher — butun guruhni biriktirish
+    @PostMapping("/course/{courseId}/group/{groupId}")
+    public ResponseEntity<EnrollmentService.GroupEnrollResult> enrollGroup(
+            @PathVariable Long courseId,
+            @PathVariable Long groupId) {
+        return ResponseEntity.ok(enrollmentService.enrollGroup(courseId, groupId));
+    }
+
+    // Teacher — talabani kursdan chiqarish
     @DeleteMapping("/course/{courseId}/student/{studentId}")
     public ResponseEntity<Void> removeStudent(
             @PathVariable Long courseId,
@@ -34,17 +42,17 @@ public class EnrollmentController {
         return ResponseEntity.ok().build();
     }
 
+    // Kurs talabalari ro'yxati
+    @GetMapping("/course/{courseId}/students")
+    public ResponseEntity<List<EnrollmentService.EnrollmentResponse>> courseStudents(
+            @PathVariable Long courseId) {
+        return ResponseEntity.ok(enrollmentService.getCourseStudents(courseId));
+    }
+
     // Student o'z kurslarini ko'radi
     @GetMapping("/my")
     public ResponseEntity<List<EnrollmentService.EnrollmentResponse>> myEnrollments(
             @AuthenticationPrincipal User student) {
         return ResponseEntity.ok(enrollmentService.getMyEnrollments(student));
-    }
-
-    // Kurs talabalari (teacher/admin uchun)
-    @GetMapping("/course/{courseId}/students")
-    public ResponseEntity<List<EnrollmentService.EnrollmentResponse>> courseStudents(
-            @PathVariable Long courseId) {
-        return ResponseEntity.ok(enrollmentService.getCourseStudents(courseId));
     }
 }
