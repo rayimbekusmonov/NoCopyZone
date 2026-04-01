@@ -34,6 +34,7 @@ public class EnrollmentService {
         private Long courseId;
         private String courseName;
         private String teacherName;
+        private Long studentId;
         private String studentName;
         private String studentEmail;
         private String enrolledAt;
@@ -116,6 +117,7 @@ public class EnrollmentService {
                 e.getCourse().getId(),
                 e.getCourse().getName(),
                 e.getCourse().getTeacher().getFullName(),
+                e.getStudent().getId(),
                 e.getStudent().getFullName(),
                 e.getStudent().getEmail(),
                 e.getEnrolledAt().toString());
