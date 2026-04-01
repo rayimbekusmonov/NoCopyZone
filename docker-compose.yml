@@ -8,13 +8,13 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/nocopyzone
+      # application.yml dagi o'zgaruvchilarni shu yerda Docker tarmog'iga moslab beramiz
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/nocopyzone?sslmode=disable
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6380
-      SPRING_RABBITMQ_HOST: rabbitmq
-      SPRING_RABBITMQ_PORT: 5672
+      # Redis uchun standart 6379 portini ishlatish tavsiya etiladi
+      SPRING_DATA_REDIS_URL: redis://redis:6379
+      SPRING_RABBITMQ_ADDRESSES: amqp://guest:guest@rabbitmq:5672/
       APP_JWT_SECRET: nocopyzone-super-secret-key-minimum-256-bits-long-for-hs256
     depends_on:
       postgres:
@@ -32,7 +32,7 @@ services:
     image: postgres:16-alpine
     container_name: nocopyzone-postgres
     ports:
-      - "5433:5432"
+      - "5433:5432" # Tashqaridan 5433, ichkarida 5432
     environment:
       POSTGRES_DB: nocopyzone
       POSTGRES_USER: postgres
@@ -52,7 +52,7 @@ services:
     image: redis:7-alpine
     container_name: nocopyzone-redis
     ports:
-      - "6380:6380"
+      - "6379:6379" # 6380 o'rniga 6379 standartga qaytarildi
     volumes:
       - redis_data:/data
     healthcheck:
@@ -69,7 +69,7 @@ services:
     container_name: nocopyzone-rabbitmq
     ports:
       - "5672:5672"
-      - "15672:15672"   # Management UI: http://localhost:15672
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
