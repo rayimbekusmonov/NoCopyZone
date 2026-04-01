@@ -3,7 +3,8 @@ spring:
     name: NoCopyZone
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/nocopyzone?sslmode=disable}
+    # localhost:5433 o'rniga servis nomi va ichki port 5432
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/nocopyzone?sslmode=disable}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
     password: ${SPRING_DATASOURCE_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
@@ -27,11 +28,13 @@ spring:
 
   data:
     redis:
-      url: ${SPRING_DATA_REDIS_URL:redis://localhost:6380}
+      # localhost:6380 o'rniga servis nomi va standart port 6379
+      url: ${SPRING_DATA_REDIS_URL:redis://redis:6379}
       timeout: 2000ms
 
   rabbitmq:
-    addresses: ${SPRING_RABBITMQ_ADDRESSES:amqp://guest:guest@localhost:5672/}
+    # localhost o'rniga rabbitmq servis nomi
+    addresses: ${SPRING_RABBITMQ_ADDRESSES:amqp://guest:guest@rabbitmq:5672/}
 
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
@@ -52,7 +55,7 @@ spring:
       max-request-size: 55MB
 
 server:
-  port: ${PORT:8081}
+  port: ${PORT:8080}
   servlet:
     context-path: /api
 
