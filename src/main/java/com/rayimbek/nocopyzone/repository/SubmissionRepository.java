@@ -7,10 +7,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface SubmissionRepository extends JpaRepository<Submission, Long> {
-
-    Optional<Submission> findByTaskIdAndStudentId(Long taskId, Long studentId);
-
+    Optional<Submission> findByStudentIdAndTaskId(Long studentId, Long taskId);
+    Optional<Submission> findByIdAndStudentId(Long id, Long studentId);
     List<Submission> findByTaskId(Long taskId);
-
     List<Submission> findByStudentId(Long studentId);
 }

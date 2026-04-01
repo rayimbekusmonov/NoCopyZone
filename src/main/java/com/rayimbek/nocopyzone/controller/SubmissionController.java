@@ -2,7 +2,6 @@ package com.rayimbek.nocopyzone.controller;
 
 import com.rayimbek.nocopyzone.entity.User;
 import com.rayimbek.nocopyzone.service.SubmissionService;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,19 +24,19 @@ public class SubmissionController {
         return ResponseEntity.ok(submissionService.startSubmission(taskId, student));
     }
 
-    @PostMapping("/{submissionId}/submit")
+    @PostMapping("/{id}/submit")
     public ResponseEntity<SubmissionService.SubmissionResponse> submit(
-            @PathVariable Long submissionId,
-            @RequestBody String content,
+            @PathVariable Long id,
+            @RequestBody(required = false) String content,
             @AuthenticationPrincipal User student) {
-        return ResponseEntity.ok(submissionService.submitWork(submissionId, content, student));
+        return ResponseEntity.ok(submissionService.submit(id, content != null ? content : "", student));
     }
 
-    @PostMapping("/{submissionId}/grade")
+    @PostMapping("/{id}/grade")
     public ResponseEntity<SubmissionService.SubmissionResponse> grade(
-            @PathVariable Long submissionId,
-            @RequestBody GradeRequest request) {
-        return ResponseEntity.ok(submissionService.gradeSubmission(submissionId, request.getScore(), request.getFeedback()));
+            @PathVariable Long id,
+            @RequestBody SubmissionService.GradeRequest request) {
+        return ResponseEntity.ok(submissionService.grade(id, request));
     }
 
     @GetMapping("/task/{taskId}")
@@ -47,14 +46,8 @@ public class SubmissionController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<List<SubmissionService.SubmissionResponse>> getMy(
+    public ResponseEntity<List<SubmissionService.SubmissionResponse>> getMySubmissions(
             @AuthenticationPrincipal User student) {
         return ResponseEntity.ok(submissionService.getMySubmissions(student));
-    }
-
-    @Data
-    public static class GradeRequest {
-        private Integer score;
-        private String feedback;
     }
 }

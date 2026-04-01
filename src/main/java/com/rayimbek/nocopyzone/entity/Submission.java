@@ -24,6 +24,9 @@ public class Submission {
     @JoinColumn(name = "student_id", nullable = false)
     private User student;
 
+    @Column(nullable = false, length = 50)
+    private String status = "IN_PROGRESS";
+
     @Column(columnDefinition = "TEXT")
     private String content;
 
@@ -35,8 +38,8 @@ public class Submission {
     @Column(name = "integrity_score", nullable = false)
     private Integer integrityScore = 100;
 
-    @Column(nullable = false, length = 50)
-    private String status = "IN_PROGRESS";
+    @Column(columnDefinition = "TEXT")
+    private String feedback;
 
     @Column(name = "started_at", nullable = false)
     private LocalDateTime startedAt = LocalDateTime.now();
