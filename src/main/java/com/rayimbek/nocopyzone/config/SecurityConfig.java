@@ -1,6 +1,5 @@
 package com.rayimbek.nocopyzone.config;
 
-import com.rayimbek.nocopyzone.security.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +20,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.rayimbek.nocopyzone.security.JwtAuthFilter;
+
 import java.util.List;
 
 @Configuration
@@ -28,21 +29,21 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    // JwtAuthFilter EMAS — faqat UserDetailsService inject qilinadi
     private final UserDetailsService userDetailsService;
-    private final JwtAuthFilter jwtAuthFilter;
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
-                        // ===== PUBLIC =====
+                        // PUBLIC
                         .requestMatchers("/auth/**").permitAll()
 
-                        // ===== ADMIN ONLY =====
+                        // ADMIN ONLY
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/groups").hasAnyRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/groups/*/students/*").hasAnyRole("ADMIN")
@@ -50,55 +51,47 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/groups/*/courses/*").hasAnyRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/groups/*/courses/*").hasAnyRole("ADMIN")
 
-                        // ===== TEACHER + ADMIN =====
+                        // TEACHER + ADMIN
                         .requestMatchers(HttpMethod.POST, "/courses").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/courses/**").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/courses/**").hasAnyRole("TEACHER", "ADMIN")
-
                         .requestMatchers(HttpMethod.POST, "/tasks").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/tasks/**").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/tasks/**").hasAnyRole("TEACHER", "ADMIN")
-
                         .requestMatchers(HttpMethod.POST, "/lectures/**").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/lectures/**").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/lectures/**").hasAnyRole("TEACHER", "ADMIN")
-
                         .requestMatchers(HttpMethod.POST, "/quiz/task/*/questions").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/quiz/questions/**").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/quiz/task/*/questions/admin").hasAnyRole("TEACHER", "ADMIN")
-
                         .requestMatchers(HttpMethod.POST, "/submissions/*/grade").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/submissions/task/**").hasAnyRole("TEACHER", "ADMIN")
-
                         .requestMatchers(HttpMethod.POST, "/enrollments/course/*/student/*").hasAnyRole("TEACHER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/enrollments/course/*/group/*").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/enrollments/course/*/student/*").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/enrollments/course/**").hasAnyRole("TEACHER", "ADMIN")
-
                         .requestMatchers(HttpMethod.GET, "/proctor/task/**").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/users/students").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/users/teachers").hasAnyRole("TEACHER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/users").hasAnyRole("TEACHER", "ADMIN")
 
-                        // ===== STUDENT ONLY =====
+                        // STUDENT ONLY
                         .requestMatchers(HttpMethod.POST, "/submissions/start/**").hasRole("STUDENT")
                         .requestMatchers(HttpMethod.POST, "/submissions/*/submit").hasRole("STUDENT")
                         .requestMatchers(HttpMethod.GET, "/submissions/my").hasRole("STUDENT")
-
                         .requestMatchers(HttpMethod.GET, "/quiz/task/*/questions").hasRole("STUDENT")
                         .requestMatchers(HttpMethod.POST, "/quiz/submission/*/answer").hasRole("STUDENT")
                         .requestMatchers(HttpMethod.POST, "/quiz/submission/*/finish").hasRole("STUDENT")
-
                         .requestMatchers(HttpMethod.GET, "/groups/my-courses").hasRole("STUDENT")
-
                         .requestMatchers(HttpMethod.POST, "/proctor/event").hasRole("STUDENT")
-                        .requestMatchers(HttpMethod.GET, "/proctor/submission/**").hasAnyRole("STUDENT", "TEACHER", "ADMIN")
 
-                        // ===== ALL AUTHENTICATED =====
+                        // ALL AUTHENTICATED
                         .requestMatchers(HttpMethod.GET, "/courses/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/tasks/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/lectures/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/groups/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/enrollments/my").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/proctor/submission/**").authenticated()
                         .requestMatchers("/users/me").authenticated()
                         .requestMatchers("/users/change-password").authenticated()
                         .requestMatchers("/files/**").authenticated()
@@ -116,14 +109,12 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:3000",
-                "http://localhost:3001",
-                "https://nocopyzone.vercel.app"  // production URL qo'shing
+                "http://localhost:3001"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
