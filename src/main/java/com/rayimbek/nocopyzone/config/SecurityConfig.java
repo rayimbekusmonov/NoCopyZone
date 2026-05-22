@@ -112,6 +112,7 @@ public class SecurityConfig {
                 "http://localhost:3001",
                 "https://rayimbek.uz",
                 "https://www.rayimbek.uz",
+                "https://*.vercel.app",
                 "https://no-copy-zone-front-end.vercel.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
